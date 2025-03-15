@@ -1,0 +1,33 @@
+---
+import { db } from "astro:db";
+import Layout from "../layouts/Layout.astro";
+import { posts } from "astro:db";
+import { eq } from "astro:db";
+
+const result = await db
+  .select()
+  .from(posts)
+  .where(eq(posts.status, "published"));
+
+console.log(result);
+---
+
+<Layout>
+  <h1>Blog</h1>
+  <ul>
+    {
+      result.map((post) => (
+        <li>
+          <a href={`/post/${post.id}`}>
+            <time datetime={post.created_at.toISOString()}>
+              {post.created_at.toLocaleDateString("en-US", {
+                timeZone: "UTC",
+              })}
+            </time>
+            <h2>{post.title}</h2>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>

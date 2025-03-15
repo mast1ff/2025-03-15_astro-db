@@ -1,0 +1,50 @@
+---
+import { eq, posts } from "astro:db";
+import { db } from "astro:db";
+import Layout from "../../layouts/Layout.astro";
+import { notFound } from "../../lib/errors";
+
+const id = Astro.params.id as string;
+
+if (Number.isNaN(Number(id))) {
+  return notFound(Astro.url.pathname);
+}
+
+const [post] = await db
+  .select()
+  .from(posts)
+  .where(eq(posts.id, Number(id)));
+
+if (!post || post.status !== "published") {
+  return notFound(Astro.url.pathname);
+}
+---
+
+<Layout>
+  <h1>{post.title}</h1>
+  <p>
+    Created: <time datetime={post.created_at.toISOString()}>
+      {
+        post.created_at.toLocaleDateString("en-US", {
+          timeZone: "UTC",
+        })
+      }
+    </time><br />
+    {
+      post.created_at === post.updated_at ? null : (
+        <>
+          Updated:{" "}
+          <time datetime={post.updated_at.toISOString()}>
+            {post.updated_at.toLocaleDateString("en-US", {
+              timeZone: "UTC",
+            })}
+          </time>
+        </>
+      )
+    }
+  </p>
+
+  <p>{post.content}</p>
+
+  <a href="/">Back to Blog</a>
+</Layout>
